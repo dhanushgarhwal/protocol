@@ -400,11 +400,22 @@ async function syncSnapshot() {
   return syncPromise;
 }
 
+async function validateUnlockSession(req) {
+  const token=String(req.headers["x-protocol-session"]||""); const secret=process.env.LOCK_SESSION_SECRET;
+  if(!token||!secret) return false; const parts=token.split("."); if(parts.length!==2) return false;
+  const [payload,sig]=parts; let data; try{data=JSON.parse(Buffer.from(payload,"base64url").toString("utf8"));}catch{return false;}
+  if(data.scope!=="protocol"||!data.exp||Date.now()>=Number(data.exp)) return false;
+  const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const expected=Buffer.from(await crypto.subtle.sign("HMAC",key,new TextEncoder().encode(payload))).toString("base64url");
+  return sig===expected;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return res.status(405).json({ error: "Method not allowed" });
   }
+  if (!(await validateUnlockSession(req))) return res.status(401).json({ error: "Protocol is locked or the session has expired" });
   if (!process.env.NOTION_TOKEN) return res.status(500).json({ error: "NOTION_TOKEN is not configured on Vercel" });
 
   const source = typeof req.query?.source_id === "string" ? req.query.source_id : SOURCE_ID;

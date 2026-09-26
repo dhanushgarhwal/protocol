@@ -1,5 +1,7 @@
 const SOURCE_ID = "5b12657c-dd3a-829e-adc2-0794afbc0f5b";
 const API = "/api/notion";
+const UNLOCK_API = "/api/unlock";
+let sessionToken = null, lockTimer = null, lockExpiresAt = 0;
 const CATEGORIES = ["Intelligence", "Money", "Health"];
 
 let model = null;
@@ -182,7 +184,10 @@ async function load() {
   $("error").classList.add("hidden");
   setStatus("loading", "Loading");
   try {
-    const response = await fetch(`${API}?source_id=${encodeURIComponent(SOURCE_ID)}`, { cache: "no-store" });
+    if (!sessionToken) throw new Error("Protocol is locked");
+    const response = await fetch(`${API}?source_id=${encodeURIComponent(SOURCE_ID)}`, {
+      cache: "no-store", headers: { "X-Protocol-Session": sessionToken }
+    });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Could not load data");
     if (!data.model || !data.model.main || !Array.isArray(data.model.years)) throw new Error("Invalid Protocol data response");
@@ -206,4 +211,28 @@ async function load() {
   }
 }
 $("retry").addEventListener("click", load);
-load();
+function showLock(message="Code expires automatically.") {
+  document.body.classList.add("locked"); $("lockScreen").classList.remove("hidden");
+  $("lockMessage").textContent=message; $("unlockCode").focus();
+}
+function hideLock(){document.body.classList.remove("locked");$("lockScreen").classList.add("hidden");}
+function startLockCountdown(expiresAt){
+  lockExpiresAt=expiresAt; clearInterval(lockTimer);
+  lockTimer=setInterval(()=>{
+    const left=Math.max(0,Math.ceil((lockExpiresAt-Date.now())/1000));
+    $("lockCountdown").textContent=`${left}s`;
+    if(!left){clearInterval(lockTimer);sessionToken=null;model=null;$("content").classList.add("hidden");setStatus("error","Locked");showLock("Session expired. Enter a new 60-second code.");}
+  },250);
+}
+$("unlockForm").addEventListener("submit",async e=>{
+  e.preventDefault(); const button=$("unlockButton"), code=$("unlockCode").value.trim();
+  if(!/^\d{6}$/.test(code)){ $("lockMessage").textContent="Enter the 6-digit code."; return; }
+  button.disabled=true; $("lockMessage").textContent="Verifying…";
+  try{
+    const r=await fetch(UNLOCK_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});
+    const d=await r.json().catch(()=>({})); if(!r.ok||!d.token) throw new Error(d.error||"Invalid or expired code");
+    sessionToken=d.token; $("unlockCode").value=""; hideLock(); startLockCountdown(Number(d.expiresAt)); await load();
+  }catch(err){sessionToken=null;$("lockMessage").textContent=err?.message||"Invalid or expired code.";$("unlockCode").select();}
+  finally{button.disabled=false;}
+});
+showLock();

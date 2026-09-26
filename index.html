@@ -12,7 +12,21 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="locked">
+<div id="lockScreen" class="lock-screen" aria-modal="true" role="dialog" aria-labelledby="lockTitle">
+  <div class="lock-glass">
+    <div class="lock-mark" aria-hidden="true">⌑</div>
+    <div class="lock-kicker">PROTOCOL / SECURE</div>
+    <h1 id="lockTitle">Locked</h1>
+    <p class="lock-copy">Enter the current 60-second access code to open your performance system.</p>
+    <form id="unlockForm" class="lock-form" autocomplete="off">
+      <input id="unlockCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="••••••" aria-label="6 digit access code" autocomplete="one-time-code" required>
+      <button id="unlockButton" type="submit">Unlock</button>
+    </form>
+    <div class="lock-meta"><span id="lockMessage">Code expires automatically.</span><span id="lockCountdown">60s</span></div>
+  </div>
+</div>
+
   <div class="intro" aria-hidden="true">
     <div class="intro-light intro-light-a"></div>
     <div class="intro-light intro-light-b"></div>
