@@ -215,7 +215,6 @@ function showLock(message="Code expires automatically.") {
   document.body.classList.add("locked");
   $("lockScreen").classList.remove("hidden");
   requestAnimationFrame(() => $("lockScreen").classList.add("visible"));
-  $("lockMessage").textContent=message;
   setTimeout(() => $("unlockCode").focus(), 80);
 }
 function hideLock(){
@@ -227,20 +226,19 @@ function startLockCountdown(expiresAt){
   lockExpiresAt=expiresAt; clearInterval(lockTimer);
   lockTimer=setInterval(()=>{
     const left=Math.max(0,Math.ceil((lockExpiresAt-Date.now())/1000));
-    $("lockCountdown").textContent=`${left}s`;
     if(!left){
       clearInterval(lockTimer);
       sessionToken=null;
       setStatus("locked","Read only");
-      showLock("Session expired. Read-only mode is active until you unlock again.");
+      showLock();
       load({readOnly:true});
     }
   },250);
 }
 $("unlockForm").addEventListener("submit",async e=>{
   e.preventDefault(); const button=$("unlockButton"), code=$("unlockCode").value.trim();
-  if(!/^\d{6}$/.test(code)){ $("lockMessage").textContent="Enter the 6-digit code."; return; }
-  button.disabled=true; $("lockMessage").textContent="Verifying…";
+  if(!/^\d{6}$/.test(code)){ $("unlockCode").classList.add("shake"); setTimeout(()=>$("unlockCode").classList.remove("shake"),300); return; }
+  button.disabled=true;
   try{
     const r=await fetch(UNLOCK_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});
     const d=await r.json().catch(()=>({})); if(!r.ok||!d.token) throw new Error(d.error||"Invalid or expired code");
@@ -249,7 +247,7 @@ $("unlockForm").addEventListener("submit",async e=>{
     hideLock();
     startLockCountdown(Number(d.expiresAt));
     await load({readOnly:false});
-  }catch(err){sessionToken=null;$("lockMessage").textContent=err?.message||"Invalid or expired code.";$("unlockCode").select();}
+  }catch(err){sessionToken=null;$("unlockCode").classList.add("shake");setTimeout(()=>$("unlockCode").classList.remove("shake"),300);$("unlockCode").select();}
   finally{button.disabled=false;}
 });
 load({readOnly:true});

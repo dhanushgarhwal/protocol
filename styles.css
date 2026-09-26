@@ -71,6 +71,22 @@ button { font:inherit; }
 .error button { border:0; background:transparent; color:#fff; cursor:pointer; text-decoration:underline; }
 .skeleton { border-color:transparent; background:linear-gradient(100deg,rgba(255,255,255,.02),rgba(255,255,255,.055),rgba(255,255,255,.02)); background-size:220% 100%; animation:shimmer 1.5s ease-in-out infinite; }
 
+body.locked>.ambient,body.locked>.hero{visibility:hidden}
+.lock-screen{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px;background:rgba(3,5,9,.38);opacity:0;visibility:hidden;pointer-events:none;backdrop-filter:blur(20px) saturate(110%);-webkit-backdrop-filter:blur(20px) saturate(110%);transition:opacity .22s ease,visibility .22s ease}
+.lock-screen.visible{opacity:1;visibility:visible;pointer-events:auto}
+.lock-glass{width:min(330px,100%);padding:24px;border:1px solid rgba(255,255,255,.11);border-radius:20px;background:linear-gradient(145deg,rgba(22,27,37,.78),rgba(8,11,17,.68));box-shadow:0 28px 80px rgba(0,0,0,.52),inset 0 1px rgba(255,255,255,.07);backdrop-filter:blur(30px) saturate(125%);-webkit-backdrop-filter:blur(30px) saturate(125%);transform:translateY(10px) scale(.985);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.lock-screen.visible .lock-glass{transform:none}
+.lock-glass h1{margin:0 0 18px;text-align:center;font:600 19px/1 "Space Grotesk",sans-serif;letter-spacing:.16em;color:#f1f4f8}
+.lock-form{display:grid;grid-template-columns:1fr 86px;gap:8px}
+.lock-form input{min-width:0;height:44px;border:1px solid rgba(255,255,255,.10);border-radius:11px;background:rgba(0,0,0,.20);color:#fff;text-align:center;font:600 16px "DM Sans",sans-serif;letter-spacing:.24em;outline:none;transition:border-color .2s,box-shadow .2s}
+.lock-form input:focus{border-color:rgba(255,255,255,.23);box-shadow:0 0 0 3px rgba(255,255,255,.035)}
+.lock-form button{border:1px solid rgba(255,255,255,.11);border-radius:11px;background:rgba(255,255,255,.075);color:#edf1f7;font:600 9px "DM Sans",sans-serif;letter-spacing:.08em;cursor:pointer;transition:background .2s,border-color .2s}
+.lock-form button:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.17)}
+.lock-form button:disabled{opacity:.45;cursor:wait}
+.lock-form input.shake{animation:lockShake .28s ease}
+@keyframes lockShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media(max-width:430px){.lock-glass{padding:22px}.lock-form{grid-template-columns:1fr}.lock-form button{height:42px}}
+
 .period-dialog { width:min(660px,calc(100% - 32px)); height:min(650px,calc(100svh - 48px)); max-height:none; margin:auto; padding:0; border:1px solid rgba(255,255,255,.12); border-radius:24px; color:var(--text); background:rgba(12,17,27,.56); box-shadow:0 40px 120px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.05),inset 0 -1px rgba(0,0,0,.18); backdrop-filter:blur(38px) saturate(135%); -webkit-backdrop-filter:blur(38px) saturate(135%); overflow:hidden; }
 .period-dialog::backdrop { background:rgba(1,3,7,.64); backdrop-filter:blur(13px); -webkit-backdrop-filter:blur(13px); }
 .dialog-inner { height:100%; display:flex; flex-direction:column; padding:28px; }
@@ -159,27 +175,22 @@ button { font:inherit; }
   *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
   .intro { display:none; }
 }
-\nbody.locked>.ambient,body.locked>.hero{visibility:hidden}.lock-screen{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px;background:rgba(2,4,8,.72);backdrop-filter:blur(26px) saturate(120%);-webkit-backdrop-filter:blur(26px)}.lock-screen.hidden{display:none}.lock-glass{width:min(390px,100%);padding:28px;border:1px solid rgba(255,255,255,.14);border-radius:22px;background:linear-gradient(145deg,rgba(27,33,44,.72),rgba(8,12,18,.56));box-shadow:0 34px 100px rgba(0,0,0,.65),inset 0 1px rgba(255,255,255,.09),inset 0 -1px rgba(0,0,0,.28);backdrop-filter:blur(34px) saturate(135%)}.lock-mark{width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:rgba(255,255,255,.045);color:#dfe6f2;font-size:22px}.lock-kicker{margin-top:22px;color:#747e8e;font-size:8px;letter-spacing:.2em}.lock-glass h1{margin:8px 0 0;font:600 30px/1 "Space Grotesk",sans-serif;letter-spacing:-.05em;color:#f1f4f8}.lock-copy{margin:11px 0 22px;color:#8d97a7;font-size:10px;line-height:1.65}.lock-form{display:grid;grid-template-columns:1fr 92px;gap:8px}.lock-form input{min-width:0;height:46px;border:1px solid rgba(255,255,255,.11);border-radius:12px;background:rgba(0,0,0,.24);color:#fff;text-align:center;font:600 17px "DM Sans",sans-serif;letter-spacing:.28em;outline:none}.lock-form input:focus{border-color:rgba(255,255,255,.25);box-shadow:0 0 0 3px rgba(255,255,255,.045)}.lock-form button{border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.09);color:#eef2f7;font:600 10px "DM Sans",sans-serif;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 20px rgba(0,0,0,.22)}.lock-form button:hover{background:rgba(255,255,255,.14)}.lock-form button:disabled{opacity:.5;cursor:wait}.lock-meta{display:flex;justify-content:space-between;gap:12px;margin-top:12px;color:#687384;font-size:8px}#lockCountdown{color:#aeb8c8;font-variant-numeric:tabular-nums}@media(max-width:430px){.lock-glass{padding:23px}.lock-form{grid-template-columns:1fr}.lock-form button{height:44px}}
-/* Secure access layer — deliberately restrained, glass, and non-distracting. */
-body.locked .hero { filter: blur(10px) saturate(.72); transform:scale(.992); transition:filter .35s ease,transform .35s ease; }
-body:not(.locked) .hero { filter:none; transform:none; }
-body.locked .ambient { opacity:.10; }
-.lock-screen { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:24px; background:rgba(3,5,9,.38); opacity:0; visibility:hidden; pointer-events:none; backdrop-filter:blur(20px) saturate(110%); -webkit-backdrop-filter:blur(20px) saturate(110%); transition:opacity .22s ease,visibility .22s ease; }
-.lock-screen.visible { opacity:1; visibility:visible; pointer-events:auto; }
-.lock-glass { width:min(370px,100%); padding:26px; border:1px solid rgba(255,255,255,.11); border-radius:20px; background:linear-gradient(145deg,rgba(22,27,37,.78),rgba(8,11,17,.68)); box-shadow:0 28px 80px rgba(0,0,0,.52),inset 0 1px rgba(255,255,255,.07); backdrop-filter:blur(30px) saturate(125%); -webkit-backdrop-filter:blur(30px) saturate(125%); transform:translateY(10px) scale(.985); transition:transform .28s cubic-bezier(.2,.8,.2,1); }
-.lock-screen.visible .lock-glass { transform:none; }
-.lock-mark { width:34px; height:34px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.10); border-radius:10px; background:rgba(255,255,255,.035); color:#dce3ee; font-size:18px; }
-.lock-kicker { margin-top:18px; color:#737d8d; font-size:8px; letter-spacing:.19em; }
-.lock-glass h1 { margin:8px 0 0; font:600 28px/1 "Space Grotesk",sans-serif; letter-spacing:-.05em; color:#f1f4f8; }
-.lock-copy { margin:10px 0 20px; color:#8993a3; font-size:10px; line-height:1.6; }
-.lock-form { display:grid; grid-template-columns:1fr 82px; gap:8px; }
-.lock-form input { min-width:0; height:44px; border:1px solid rgba(255,255,255,.10); border-radius:11px; background:rgba(0,0,0,.20); color:#fff; text-align:center; font:600 16px "DM Sans",sans-serif; letter-spacing:.24em; outline:none; transition:border-color .2s,box-shadow .2s; }
-.lock-form input:focus { border-color:rgba(255,255,255,.23); box-shadow:0 0 0 3px rgba(255,255,255,.035); }
-.lock-form button { border:1px solid rgba(255,255,255,.11); border-radius:11px; background:rgba(255,255,255,.075); color:#edf1f7; font:600 10px "DM Sans",sans-serif; cursor:pointer; transition:background .2s,border-color .2s; }
-.lock-form button:hover { background:rgba(255,255,255,.11); border-color:rgba(255,255,255,.17); }
-.lock-form button:disabled { opacity:.45; cursor:wait; }
-.lock-meta { display:flex; justify-content:space-between; gap:12px; margin-top:11px; color:#667181; font-size:8px; }
-#lockCountdown { color:#aeb8c7; font-variant-numeric:tabular-nums; }
-.status.locked i { background:#a9b2c1; box-shadow:none; }
-.status.locked i::after { display:none; }
-@media(max-width:430px) { .lock-glass{padding:22px}.lock-form{grid-template-columns:1fr}.lock-form button{height:42px} }
+/* Secure access layer */
+body.locked>.ambient,body.locked>.hero{visibility:hidden}
+body.locked .hero{filter:blur(10px) saturate(.72);transform:scale(.992);transition:filter .35s ease,transform .35s ease}
+body:not(.locked) .hero{filter:none;transform:none}
+body.locked .ambient{opacity:.1}
+.lock-screen{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px;background:rgba(3,5,9,.38);opacity:0;visibility:hidden;pointer-events:none;backdrop-filter:blur(20px) saturate(110%);-webkit-backdrop-filter:blur(20px) saturate(110%);transition:opacity .22s ease,visibility .22s ease}
+.lock-screen.visible{opacity:1;visibility:visible;pointer-events:auto}
+.lock-glass{width:min(330px,100%);padding:24px;border:1px solid rgba(255,255,255,.11);border-radius:20px;background:linear-gradient(145deg,rgba(22,27,37,.78),rgba(8,11,17,.68));box-shadow:0 28px 80px rgba(0,0,0,.52),inset 0 1px rgba(255,255,255,.07);backdrop-filter:blur(30px) saturate(125%);-webkit-backdrop-filter:blur(30px) saturate(125%);transform:translateY(10px) scale(.985);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.lock-screen.visible .lock-glass{transform:none}
+.lock-glass h1{margin:0 0 18px;text-align:center;font:600 19px/1 "Space Grotesk",sans-serif;letter-spacing:.16em;color:#f1f4f8}
+.lock-form{display:grid;grid-template-columns:1fr 86px;gap:8px}
+.lock-form input{min-width:0;height:44px;border:1px solid rgba(255,255,255,.10);border-radius:11px;background:rgba(0,0,0,.20);color:#fff;text-align:center;font:600 16px "DM Sans",sans-serif;letter-spacing:.24em;outline:none;transition:border-color .2s,box-shadow .2s}
+.lock-form input:focus{border-color:rgba(255,255,255,.23);box-shadow:0 0 0 3px rgba(255,255,255,.035)}
+.lock-form button{border:1px solid rgba(255,255,255,.11);border-radius:11px;background:rgba(255,255,255,.075);color:#edf1f7;font:600 9px "DM Sans",sans-serif;letter-spacing:.08em;cursor:pointer;transition:background .2s,border-color .2s}
+.lock-form button:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.17)}
+.lock-form button:disabled{opacity:.45;cursor:wait}
+.lock-form input.shake{animation:lockShake .28s ease}
+@keyframes lockShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media(max-width:430px){.lock-glass{padding:22px}.lock-form{grid-template-columns:1fr}.lock-form button{height:42px}}

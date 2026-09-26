@@ -15,15 +15,11 @@
 <body class="locked">
 <div id="lockScreen" class="lock-screen" aria-modal="true" role="dialog" aria-labelledby="lockTitle">
   <div class="lock-glass">
-    <div class="lock-mark" aria-hidden="true">⌑</div>
-    <div class="lock-kicker">PROTOCOL / SECURE</div>
-    <h1 id="lockTitle">Locked</h1>
-    <p class="lock-copy">Enter the current 60-second access code to open your performance system.</p>
+    <h1 id="lockTitle">LOCKED</h1>
     <form id="unlockForm" class="lock-form" autocomplete="off">
       <input id="unlockCode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="••••••" aria-label="6 digit access code" autocomplete="one-time-code" required>
-      <button id="unlockButton" type="submit">Unlock</button>
+      <button id="unlockButton" type="submit">UNLOCK</button>
     </form>
-    <div class="lock-meta"><span id="lockMessage">Code expires automatically.</span><span id="lockCountdown">60s</span></div>
   </div>
 </div>
 
