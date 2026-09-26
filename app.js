@@ -177,16 +177,17 @@ $("rangeOptions").addEventListener("click", (event) => {
 $("closeRangeDialog").addEventListener("click", () => rangeDialog.close());
 rangeDialog.addEventListener("click", (event) => { if (event.target === rangeDialog) rangeDialog.close(); });
 
-async function load() {
+async function load({ readOnly = !sessionToken } = {}) {
   if (loading) return;
   loading = true;
   $("loading").classList.remove("hidden");
   $("error").classList.add("hidden");
-  setStatus("loading", "Loading");
+  setStatus("loading", readOnly ? "Read only" : "Syncing");
   try {
-    if (!sessionToken) throw new Error("Protocol is locked");
+    const headers = {};
+    if (!readOnly && sessionToken) headers["X-Protocol-Session"] = sessionToken;
     const response = await fetch(`${API}?source_id=${encodeURIComponent(SOURCE_ID)}`, {
-      cache: "no-store", headers: { "X-Protocol-Session": sessionToken }
+      cache: "no-store", headers
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Could not load data");
@@ -195,7 +196,7 @@ async function load() {
     render();
     $("loading").classList.add("hidden");
     $("content").classList.remove("hidden");
-    setStatus("", "Connected");
+    setStatus(readOnly ? "locked" : "", readOnly ? "Read only" : "Connected");
   } catch (error) {
     $("loading").classList.add("hidden");
     if (model) {
@@ -210,18 +211,30 @@ async function load() {
     loading = false;
   }
 }
-$("retry").addEventListener("click", load);
 function showLock(message="Code expires automatically.") {
-  document.body.classList.add("locked"); $("lockScreen").classList.remove("hidden");
-  $("lockMessage").textContent=message; $("unlockCode").focus();
+  document.body.classList.add("locked");
+  $("lockScreen").classList.remove("hidden");
+  requestAnimationFrame(() => $("lockScreen").classList.add("visible"));
+  $("lockMessage").textContent=message;
+  setTimeout(() => $("unlockCode").focus(), 80);
 }
-function hideLock(){document.body.classList.remove("locked");$("lockScreen").classList.add("hidden");}
+function hideLock(){
+  $("lockScreen").classList.remove("visible");
+  document.body.classList.remove("locked");
+  setTimeout(() => $("lockScreen").classList.add("hidden"), 220);
+}
 function startLockCountdown(expiresAt){
   lockExpiresAt=expiresAt; clearInterval(lockTimer);
   lockTimer=setInterval(()=>{
     const left=Math.max(0,Math.ceil((lockExpiresAt-Date.now())/1000));
     $("lockCountdown").textContent=`${left}s`;
-    if(!left){clearInterval(lockTimer);sessionToken=null;model=null;$("content").classList.add("hidden");setStatus("error","Locked");showLock("Session expired. Enter a new 60-second code.");}
+    if(!left){
+      clearInterval(lockTimer);
+      sessionToken=null;
+      setStatus("locked","Read only");
+      showLock("Session expired. Read-only mode is active until you unlock again.");
+      load({readOnly:true});
+    }
   },250);
 }
 $("unlockForm").addEventListener("submit",async e=>{
@@ -231,8 +244,13 @@ $("unlockForm").addEventListener("submit",async e=>{
   try{
     const r=await fetch(UNLOCK_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code})});
     const d=await r.json().catch(()=>({})); if(!r.ok||!d.token) throw new Error(d.error||"Invalid or expired code");
-    sessionToken=d.token; $("unlockCode").value=""; hideLock(); startLockCountdown(Number(d.expiresAt)); await load();
+    sessionToken=d.token;
+    $("unlockCode").value="";
+    hideLock();
+    startLockCountdown(Number(d.expiresAt));
+    await load({readOnly:false});
   }catch(err){sessionToken=null;$("lockMessage").textContent=err?.message||"Invalid or expired code.";$("unlockCode").select();}
   finally{button.disabled=false;}
 });
-showLock();
+load({readOnly:true});
+setTimeout(() => showLock(), 2050);

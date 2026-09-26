@@ -410,27 +410,43 @@ async function validateUnlockSession(req) {
   return sig===expected;
 }
 
+async function readOnlySnapshot() {
+  // Locked clients can read the current snapshot, but this path never writes Blob.
+  const snapshot = await readSnapshot();
+  if (snapshot) return snapshot;
+
+  // First-run fallback: fetch directly from Notion for display only.
+  // It intentionally does not persist anything until the user unlocks.
+  const pages = await queryAll();
+  const tasks = pages.map(normalizePage).filter((task) => task.id);
+  const lastEditedTime = pages.reduce((max, page) => page?.last_edited_time > max ? page.last_edited_time : max, null);
+  return { version: 3, syncedAt: null, lastEditedTime, tasks };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return res.status(405).json({ error: "Method not allowed" });
   }
-  if (!(await validateUnlockSession(req))) return res.status(401).json({ error: "Protocol is locked or the session has expired" });
   if (!process.env.NOTION_TOKEN) return res.status(500).json({ error: "NOTION_TOKEN is not configured on Vercel" });
 
   const source = typeof req.query?.source_id === "string" ? req.query.source_id : SOURCE_ID;
   if (source !== SOURCE_ID) return res.status(400).json({ error: "Invalid data source" });
 
+  const unlocked = await validateUnlockSession(req);
+
   try {
-    const snapshot = await syncSnapshot();
+    // Locked = read-only. Unlocked = sync and persist to Blob.
+    const snapshot = unlocked ? await syncSnapshot() : await readOnlySnapshot();
     const model = aggregate(snapshot.tasks || []);
     res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.setHeader("X-Protocol-Sync", snapshot.syncedAt || "unknown");
-    return res.status(200).json({ model });
+    res.setHeader("X-Protocol-Mode", unlocked ? "write" : "read-only");
+    res.setHeader("X-Protocol-Sync", snapshot.syncedAt || "read-only");
+    return res.status(200).json({ model, locked: !unlocked });
   } catch (error) {
     const status = error?.status === 429 ? 429 : 500;
     if (status === 429) res.setHeader("Retry-After", String(error.retryAfter || 2));
-    return res.status(status).json({ error: error instanceof Error ? error.message : "Unexpected server error" });
+    return res.status(status).json({ error: error instanceof Error ? error.message : "Unexpected error" });
   }
 }
