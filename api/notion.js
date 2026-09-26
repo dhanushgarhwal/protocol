@@ -354,11 +354,35 @@ async function incrementalSync(snapshot) {
 
   const map = new Map(snapshot.tasks.map((task) => [task.id, task]));
   let maxEdited = snapshot.lastEditedTime;
+  let dataChanged = false;
+
   for (const page of pages) {
     const task = normalizePage(page);
-    if (task.id) map.set(task.id, task);
+    if (!task.id) continue;
+
+    const previous = map.get(task.id);
+    // The overlap window can return pages that were already synced.
+    // Only treat the page as a real change when the normalized task data changed.
+    const changed = !previous
+      || previous.title !== task.title
+      || previous.date !== task.date
+      || previous.status !== task.status
+      || previous.category !== task.category
+      || previous.isDone !== task.isDone
+      || previous.isCasual !== task.isCasual
+      || previous.lastEditedTime !== task.lastEditedTime;
+
+    if (changed) {
+      map.set(task.id, task);
+      dataChanged = true;
+    }
+
     if (page?.last_edited_time > maxEdited) maxEdited = page.last_edited_time;
   }
+
+  // Do not rewrite the Blob when Notion returned only pages we already have.
+  // This prevents the 5-minute overlap from consuming Blob Advanced Operations.
+  if (!dataChanged && maxEdited === snapshot.lastEditedTime) return snapshot;
 
   const next = { version: 3, syncedAt: new Date().toISOString(), lastEditedTime: maxEdited, tasks: [...map.values()] };
   await writeSnapshot(next);
