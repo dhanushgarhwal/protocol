@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#05070b">
+  <meta name="description" content="Protocol — Personal Performance Intelligence.">
+  <title>Protocol</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="intro" aria-hidden="true">
+    <div class="intro-light intro-light-a"></div>
+    <div class="intro-light intro-light-b"></div>
+    <div class="intro-word">Protocol</div>
+    <div class="intro-rule"></div>
+  </div>
+
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <div class="ambient ambient-c" aria-hidden="true"></div>
+
+  <main class="hero" aria-label="Protocol performance overview">
+    <section class="hero-card">
+      <header class="header">
+        <div class="brand-block">
+          <div class="brand">Protocol</div>
+          <div class="subtitle">Personal <strong>Performance Intelligence</strong>.</div>
+        </div>
+        <div class="header-right">
+          <span class="status" role="status" aria-live="polite"><i></i><span id="statusText">Loading</span></span>
+        </div>
+      </header>
+
+      <section id="loading" class="metrics" aria-label="Loading metrics">
+        <div class="metric skeleton"></div><div class="metric skeleton"></div><div class="metric skeleton"></div><div class="metric skeleton"></div>
+      </section>
+
+      <section id="content" class="hidden">
+        <div class="metrics" aria-label="Performance metrics">
+          <button class="metric metric-button" data-period="today" type="button"><span>Today</span><strong id="todayPct">—</strong><small id="todayMeta">—</small></button>
+          <button class="metric metric-button" data-period="week" type="button"><span>Week</span><strong id="weekPct">—</strong><small id="weekMeta">—</small></button>
+          <button class="metric metric-button" data-period="month" type="button"><span>Month</span><strong id="monthPct">—</strong><small id="monthMeta">—</small></button>
+          <button class="metric metric-button" data-period="total" type="button"><span>Till date</span><strong id="totalPct">—</strong><small id="totalMeta">—</small></button>
+        </div>
+
+        <div class="categories" aria-label="Category performance">
+          <button class="category category-button" data-category="Intelligence" type="button"><i class="dot intelligence"></i><span>Intelligence</span><b id="intelligencePct">—</b></button>
+          <button class="category category-button" data-category="Money" type="button"><i class="dot money"></i><span>Money</span><b id="moneyPct">—</b></button>
+          <button class="category category-button" data-category="Health" type="button"><i class="dot health"></i><span>Health</span><b id="healthPct">—</b></button>
+        </div>
+      </section>
+
+      <section id="error" class="error hidden" aria-live="assertive">
+        <span id="errorText">Unable to load data.</span>
+        <button id="retry" type="button">Retry</button>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="periodDialog" class="period-dialog" aria-labelledby="dialogTitle">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <div class="dialog-title-wrap">
+          <button class="back hidden" id="dialogBack" type="button" aria-label="Go back">‹</button>
+          <div>
+            <span class="dialog-kicker" id="dialogKicker">PERIOD</span>
+            <h2 id="dialogTitle">Year</h2>
+          </div>
+        </div>
+        <button class="close" id="closeDialog" type="button" aria-label="Close">×</button>
+      </div>
+      <div id="dialogBody" class="dialog-content"></div>
+    </div>
+  </dialog>
+
+  <dialog id="rangeDialog" class="period-dialog range-dialog" aria-labelledby="rangeDialogTitle">
+    <div class="dialog-inner">
+      <div class="dialog-head">
+        <div class="dialog-title-wrap">
+          <i class="dot" id="rangeDialogDot"></i>
+          <div>
+            <span class="dialog-kicker">CATEGORY</span>
+            <h2 id="rangeDialogTitle">Intelligence</h2>
+          </div>
+        </div>
+        <button class="close" id="closeRangeDialog" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="dialog-content range-content">
+        <div class="range-options" id="rangeOptions" role="group" aria-label="Select range">
+          <button class="range-option" data-range="today" type="button"><span>Daily</span><small>Today</small></button>
+          <button class="range-option" data-range="week" type="button"><span>Weekly</span><small>This week</small></button>
+          <button class="range-option" data-range="month" type="button"><span>Monthly</span><small>This month</small></button>
+          <button class="range-option" data-range="total" type="button"><span>Till date</span><small>All time</small></button>
+        </div>
+        <div class="range-preview" id="rangePreview">
+          <div class="range-preview-row"><span>Intelligence</span><b id="previewIntelligence">—</b></div>
+          <div class="range-preview-row"><span>Money</span><b id="previewMoney">—</b></div>
+          <div class="range-preview-row"><span>Health</span><b id="previewHealth">—</b></div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    (async () => {
+      const intro = document.querySelector(".intro");
+      try {
+        await document.fonts.load('600 10vw "Space Grotesk"');
+      } catch {}
+      intro?.classList.add("intro-ready");
+    })();
+  </script>
+  <script src="/app.js"></script>
+</body>
+</html>

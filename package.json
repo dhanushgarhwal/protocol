@@ -1,0 +1,12 @@
+{
+  "name": "protocol",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Protocol \u2014 personal performance intelligence dashboard backed by Notion.",
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.6.1"
+  }
+}
