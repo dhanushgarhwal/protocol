@@ -15,6 +15,37 @@ let activeCatRange = loadSavedCategoryRange();
 
 const RANGE_LABELS = { today: "Daily", week: "Weekly", month: "Monthly", total: "Till date" };
 
+const MODEL_CACHE_KEY = "protocol.lastModel.v1";
+const POLL_INTERVAL_MS = 4000;
+let pollTimer = null;
+
+function loadCachedModel() {
+  try {
+    const raw = localStorage.getItem(MODEL_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveCachedModel(nextModel) {
+  try { localStorage.setItem(MODEL_CACHE_KEY, JSON.stringify(nextModel)); } catch {}
+}
+
+// The access token is the entire auth story for this single-user app: it
+// arrives once as a bookmarked `?key=` URL, gets moved into localStorage so
+// the user doesn't need the query param on every visit, and is stripped
+// from the visible address bar/history immediately so it doesn't linger
+// there after first load.
+function getAccessToken() {
+  const url = new URL(location.href);
+  const fromQuery = url.searchParams.get("key");
+  if (fromQuery) {
+    try { localStorage.setItem("protocol.accessToken", fromQuery); } catch {}
+    url.searchParams.delete("key");
+    history.replaceState({}, "", url.toString());
+  }
+  try { return fromQuery || localStorage.getItem("protocol.accessToken") || ""; } catch { return fromQuery || ""; }
+}
+
 function loadSavedCategoryRange() {
   try {
     const saved = localStorage.getItem(CAT_RANGE_STORAGE_KEY);
@@ -40,7 +71,11 @@ function formatMeta(stat) { return stat?.total ? `${stat.done}/${stat.total}` : 
 function statLine(cats) {
   return `<span class="i">I ${formatPct(cats.Intelligence.percentage)}</span><span class="m">M ${formatPct(cats.Money.percentage)}</span><span class="h">H ${formatPct(cats.Health.percentage)}</span>`;
 }
+let lastStatusKey = "";
 function setStatus(type, text) {
+  const key = `${type || ""}:${text}`;
+  if (key === lastStatusKey) return; // avoid noisy aria-live announcements on every unchanged poll tick
+  lastStatusKey = key;
   const status = $("statusText").parentElement;
   status.className = `status ${type || ""}`.trim();
   $("statusText").textContent = text;
@@ -175,18 +210,44 @@ $("rangeOptions").addEventListener("click", (event) => {
 $("closeRangeDialog").addEventListener("click", () => rangeDialog.close());
 rangeDialog.addEventListener("click", (event) => { if (event.target === rangeDialog) rangeDialog.close(); });
 
-async function load() {
+async function load({ background = false } = {}) {
   if (loading) return;
   loading = true;
-  $("loading").classList.remove("hidden");
-  $("error").classList.add("hidden");
-  setStatus("loading", "Loading");
+
+  if (!background) {
+    const cached = loadCachedModel();
+    if (cached) {
+      // Warm return visit: paint the last-good model instantly, before the
+      // network call resolves, then quietly reconcile in the background.
+      // This is what actually fixes "loads late, user waits" -- there is no
+      // full-screen skeleton on a warm visit anymore.
+      model = cached;
+      render();
+      $("loading").classList.add("hidden");
+      $("content").classList.remove("hidden");
+      setStatus("loading", "Refreshing");
+    } else {
+      $("loading").classList.remove("hidden");
+      $("error").classList.add("hidden");
+      setStatus("loading", "Loading");
+    }
+  }
+
   try {
-    const response = await fetch(`${API}?source_id=${encodeURIComponent(SOURCE_ID)}`, { cache: "no-store" });
+    const response = await fetch(`${API}?source_id=${encodeURIComponent(SOURCE_ID)}`, {
+      headers: { Authorization: `Bearer ${getAccessToken()}` }
+      // No more { cache: "no-store" }: api/notion.js's Cache-Control header
+      // now safely governs freshness, and letting the browser's own cache
+      // short-circuit rapid repeat polls is exactly the point.
+    });
+    if (response.status === 401) throw new Error("Access token missing or invalid");
+    if (response.status === 429) throw new Error("Too many requests, try again shortly");
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "Could not load data");
     if (!data.model || !data.model.main || !Array.isArray(data.model.years)) throw new Error("Invalid Protocol data response");
+
     model = data.model;
+    saveCachedModel(model);
     render();
     $("loading").classList.add("hidden");
     $("content").classList.remove("hidden");
@@ -205,5 +266,51 @@ async function load() {
     loading = false;
   }
 }
-$("retry").addEventListener("click", load);
+
+// The status dot's existing heartbeat animation (styles.css, .status i) now
+// doubles as the "live" indicator: it only runs while the background poll
+// is actually active and the tab is visible, so it's a real signal that
+// this app is currently watching for changes, not just decorative.
+function setLiveIndicator(active) {
+  $("statusText").parentElement.classList.toggle("live", active);
+}
+
+function startPolling() {
+  stopPolling();
+  setLiveIndicator(true);
+  pollTimer = setInterval(() => {
+    if (document.visibilityState === "visible") load({ background: true });
+  }, POLL_INTERVAL_MS);
+}
+function stopPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = null;
+  setLiveIndicator(false);
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    setLiveIndicator(true);
+    load({ background: true }); // catch up immediately on refocus
+  } else {
+    setLiveIndicator(false);
+  }
+});
+
+$("retry").addEventListener("click", () => load());
+$("refresh").addEventListener("click", async () => {
+  $("refresh").disabled = true;
+  try {
+    // Trigger an immediate forced sync, then re-read once it's done -- Edge
+    // Config may not have finished writing yet if we only waited on the
+    // webhook path, so this waits for /api/sync to actually complete first.
+    await fetch("/api/sync", { method: "POST", headers: { Authorization: `Bearer ${getAccessToken()}` } });
+    await load({ background: true });
+  } catch {
+    // load()'s own error handling already surfaces failures via the status pill; nothing extra needed here.
+  } finally {
+    $("refresh").disabled = false;
+  }
+});
+
 load();
+startPolling();

@@ -33,7 +33,7 @@ button { font:inherit; }
 .ambient-c { width:300px;height:300px;left:45%;bottom:-240px;background:#5b36c9; }
 
 .hero { min-height:100svh; display:grid; place-items:center; padding:24px; }
-.hero-card { width:min(1050px,100%); padding:clamp(30px,4vw,46px); border:1px solid var(--border); border-radius:var(--radius); background:linear-gradient(145deg,rgba(18,24,36,.67),rgba(7,10,16,.5)); box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.04); backdrop-filter:blur(34px); -webkit-backdrop-filter:blur(34px); animation:heroIn 1.1s cubic-bezier(.2,.78,.16,1) .25s both; }
+.hero-card { width:min(1050px,100%); padding:clamp(30px,4vw,46px); border:1px solid var(--border); border-radius:var(--radius); background:linear-gradient(145deg,rgba(18,24,36,.67),rgba(7,10,16,.5)); box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.04); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); animation:heroIn 1.1s cubic-bezier(.2,.78,.16,1) .25s both; }
 .header { display:flex; justify-content:space-between; align-items:center; gap:28px; margin-bottom:clamp(34px,5.2vh,52px); }
 .brand { font:600 clamp(34px,4.2vw,48px)/1 "Space Grotesk",sans-serif; letter-spacing:-.06em; }
 .subtitle { margin-top:9px; color:var(--muted); font-size:11px; letter-spacing:.015em; }
@@ -44,6 +44,8 @@ button { font:inherit; }
 .status i::after { content:""; position:absolute; inset:-4px; border:1px solid rgba(100,215,165,.45); border-radius:50%; animation:heartbeat 1.9s ease-out infinite; }
 .status.loading i { background:var(--health); box-shadow:0 0 9px rgba(231,200,92,.7); }
 .status.error i { background:var(--money); box-shadow:0 0 9px rgba(240,95,99,.7); }
+.status i::after { animation-play-state:paused; }
+.status.live i::after { animation-play-state:running; }
 .refresh { width:27px; height:27px; padding:0; display:grid; place-items:center; border:1px solid rgba(255,255,255,.075); border-radius:8px; background:rgba(255,255,255,.018); color:#8e98a8; cursor:pointer; transition:background .2s ease,border-color .2s ease,color .2s ease; }
 .refresh span { font-size:12px; line-height:1; }
 .refresh:hover { color:#eef2f8; border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.08); }
@@ -71,7 +73,7 @@ button { font:inherit; }
 .error button { border:0; background:transparent; color:#fff; cursor:pointer; text-decoration:underline; }
 .skeleton { border-color:transparent; background:linear-gradient(100deg,rgba(255,255,255,.02),rgba(255,255,255,.055),rgba(255,255,255,.02)); background-size:220% 100%; animation:shimmer 1.5s ease-in-out infinite; }
 
-.period-dialog { width:min(660px,calc(100% - 32px)); height:min(650px,calc(100svh - 48px)); max-height:none; margin:auto; padding:0; border:1px solid rgba(255,255,255,.12); border-radius:24px; color:var(--text); background:rgba(12,17,27,.56); box-shadow:0 40px 120px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.05),inset 0 -1px rgba(0,0,0,.18); backdrop-filter:blur(38px) saturate(135%); -webkit-backdrop-filter:blur(38px) saturate(135%); overflow:hidden; }
+.period-dialog { width:min(660px,calc(100% - 32px)); height:min(650px,calc(100svh - 48px)); max-height:none; margin:auto; padding:0; border:1px solid rgba(255,255,255,.12); border-radius:24px; color:var(--text); background:rgba(12,17,27,.56); box-shadow:0 40px 120px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.05),inset 0 -1px rgba(0,0,0,.18); backdrop-filter:blur(24px) saturate(120%); -webkit-backdrop-filter:blur(24px) saturate(120%); overflow:hidden; }
 .period-dialog::backdrop { background:rgba(1,3,7,.64); backdrop-filter:blur(13px); -webkit-backdrop-filter:blur(13px); }
 .dialog-inner { height:100%; display:flex; flex-direction:column; padding:28px; }
 .dialog-head { min-height:58px; display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding-bottom:20px; border-bottom:1px solid var(--border-soft); }
